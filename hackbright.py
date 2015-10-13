@@ -18,16 +18,20 @@ def connect_to_db(app):
     db.init_app(app)
 
 
-def get_student_by_github(github):
+def get_student_by_github(github2):
     """Given a github account name, print information about the matching student."""
 
     QUERY = """
         SELECT first_name, last_name, github
         FROM Students
-        WHERE github = :github
+        WHERE github = :github1
         """
-    db_cursor = db.session.execute(QUERY, {'github': github})
+    db_cursor = db.session.execute(QUERY, {'github1': github2})
+    print "db_cursor: {}".format(db_cursor)
+    print "type: {}".format(type(db_cursor))
     row = db_cursor.fetchone()
+    print "row: {}".format(row)
+    print "type: {}".format(type(row))
     print "Student: %s %s\nGithub account: %s" % (row[0], row[1], row[2])
 
 
@@ -37,17 +41,43 @@ def make_new_student(first_name, last_name, github):
     Given a first name, last name, and GitHub account, add student to the
     database and print a confirmation message.
     """
-    pass
+    QUERY = """
+        INSERT INTO Students 
+        VALUES (:first_name, :last_name, :github)
+        """
+
+    db_cursor = db.session.execute(QUERY, {'first_name': first_name, 
+                               'last_name': last_name, 'github': github})
+    db.session.commit()
+    print "Successfully added student: %s %s" % (first_name, last_name)
 
 
 def get_project_by_title(title):
     """Given a project title, print information about the project."""
-    pass
+    QUERY = """
+        SELECT description, max_grade
+        FROM Projects
+        WHERE title = :title
+    """
+    db_cursor = db.session.execute(QUERY, {'title': title})
+    row = db_cursor.fetchone()
+    print "{}: {}. Max Grade: {}".format(title, row[0], row[1])
 
 
 def get_grade_by_github_title(github, title):
     """Print grade student received for a project."""
-    pass
+    QUERY = """
+        SELECT s.first_name, s.last_name, g.grade
+        FROM Grades AS g
+        JOIN Students AS s ON (g.student_github = s.github)
+        WHERE g.student_github = :github AND g.project_title = :title
+    """
+
+    db_cursor = db.session.execute(QUERY, {'github': github, 'title': title})
+
+    row = db_cursor.fetchone()
+    print row
+    print "{} {} earned {} on {}!".format(row[0], row[1], row[2], title)
 
 
 def assign_grade(github, title, grade):
@@ -77,6 +107,17 @@ def handle_input():
             first_name, last_name, github = args   # unpack!
             make_new_student(first_name, last_name, github)
 
+        elif command == "project_title": # FIXME if title is not in the database, errors out
+            title = args[0]
+            title = title.capitalize()
+            get_project_by_title(title)
+
+        elif command == "get_grade":
+            github = args[0]
+            title = args[1]
+            title = title.capitalize()
+            get_grade_by_github_title(github, title)
+
         else:
             if command != "quit":
                 print "Invalid Entry. Try again."
@@ -86,9 +127,9 @@ if __name__ == "__main__":
     app = Flask(__name__)
     connect_to_db(app)
 
-    # handle_input()
+    handle_input()
 
     # To be tidy, we'll close our database connection -- though, since this
     # is where our program ends, we'd quit anyway.
 
-    # db.session.close()
+    db.session.close()
