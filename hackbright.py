@@ -27,11 +27,11 @@ def get_student_by_github(github2):
         WHERE github = :github1
         """
     db_cursor = db.session.execute(QUERY, {'github1': github2})
-    print "db_cursor: {}".format(db_cursor)
-    print "type: {}".format(type(db_cursor))
+    # print "db_cursor: {}".format(db_cursor)
+    # print "type: {}".format(type(db_cursor))
     row = db_cursor.fetchone()
-    print "row: {}".format(row)
-    print "type: {}".format(type(row))
+    # print "row: {}".format(row)
+    # print "type: {}".format(type(row))
     print "Student: %s %s\nGithub account: %s" % (row[0], row[1], row[2])
 
 
@@ -47,7 +47,7 @@ def make_new_student(first_name, last_name, github):
         """
 
     db_cursor = db.session.execute(QUERY, {'first_name': first_name, 
-                               'last_name': last_name, 'github': github})
+                                           'last_name': last_name, 'github': github})
     db.session.commit()
     print "Successfully added student: %s %s" % (first_name, last_name)
 
@@ -76,7 +76,7 @@ def get_grade_by_github_title(github, title):
     db_cursor = db.session.execute(QUERY, {'github': github, 'title': title})
 
     row = db_cursor.fetchone()
-    print row
+    # print row
     print "{} {} earned {} on {}!".format(row[0], row[1], row[2], title)
 
 
